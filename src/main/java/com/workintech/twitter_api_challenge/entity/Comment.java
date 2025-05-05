@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -21,22 +22,40 @@ public class Comment {
 
     @NotNull
     @NotEmpty
-    @Column(name = "user_id")
-    private User user;
-
-    @NotNull
-    @NotEmpty
-    @Column(name = "tweet_id")
-    private Tweet tweet;
-
-    @NotNull
-    @NotEmpty
     @Column(name = "content")
     private String content;
 
-    @Column(name = "creation_time")
-    private LocalDateTime creationTime;
+    @Column(name = "creation_date")
+    private LocalDateTime creationDate;
 
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
+
+    @NotNull
+    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
+    @JoinColumn(name = "tweet_id")
+    private Tweet tweet;
+
+    @NotNull
+    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == this)
+            return true;
+
+        if(obj == null || obj.getClass() != getClass())
+            return false;
+
+        Comment comment = (Comment) obj;
+
+        return comment.getId().equals(this.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.id);
+    }
 }
