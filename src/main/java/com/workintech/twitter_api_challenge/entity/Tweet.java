@@ -16,7 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "tweet", schema = "twitter_api")
+@Table(name = "tweets", schema = "twitter_api")
 public class Tweet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,7 @@ public class Tweet {
     private String content;
 
     @Column(name = "image_url")
-    private LocalDateTime imageUrl;
+    private String imageUrl;
 
     @Column(name = "creation_date")
     private LocalDateTime creationDate;

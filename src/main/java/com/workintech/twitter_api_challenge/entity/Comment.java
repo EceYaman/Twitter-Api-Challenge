@@ -14,7 +14,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "comment", schema = "twitter_api")
+@Table(name = "comments", schema = "twitter_api")
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -67,6 +67,30 @@ public class User {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private Set<Retweet> retweets = new HashSet<>();
 
+    public void addTweet(Tweet tweet){
+        if(tweets == null) tweets = new HashSet<>();
+        tweets.add(tweet);
+        tweet.setUser(this);
+    }
+
+    public void addRetweet(Retweet retweet){
+        if(retweets == null) retweets = new HashSet<>();
+        retweets.add(retweet);
+        retweet.setUser(this);
+    }
+
+    public void addLike(Like like){
+        if(likes == null) likes = new HashSet<>();
+        likes.add(like);
+        like.setUser(this);
+    }
+
+    public void addComment(Comment comment){
+        if(comments == null) comments = new HashSet<>();
+        comments.add(comment);
+        comment.setUser(this);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == this)

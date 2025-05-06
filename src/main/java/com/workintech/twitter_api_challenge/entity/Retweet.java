@@ -13,7 +13,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "retweet", schema = "twitter_api")
+@Table(name = "retweets", schema = "twitter_api")
 public class Retweet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
