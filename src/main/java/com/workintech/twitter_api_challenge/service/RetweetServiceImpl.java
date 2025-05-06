@@ -51,4 +51,13 @@ public class RetweetServiceImpl implements RetweetService{
                 .orElseThrow(() -> new RetweetNotFoundException("Retweet bulunamadı (tweet: " + tweetId + ", user: " + userId + ")"));
         retweetRepo.deleteByTweetIdAndUserId(tweetId, userId);
     }
+
+    @Override
+    public void deleteRetweetById(Long id) {
+        Retweet rt = retweetRepo.findById(id)
+                .orElseThrow(() -> new RetweetNotFoundException(
+                        "Retweet bulunamadı (id: " + id + ")"
+                ));
+        retweetRepo.delete(rt);
+    }
 }

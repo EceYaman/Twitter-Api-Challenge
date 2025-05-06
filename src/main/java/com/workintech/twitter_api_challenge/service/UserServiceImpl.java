@@ -21,10 +21,10 @@ public class UserServiceImpl implements UserService{
     @Override
     public User createUser(User user) {
         if (userRepository.findUserByUsername(user.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Bu kullanıcı adı mevcut: " + user.getUsername()+ ". Farklı bir kullanıcı adı seçiniz.");
+            throw new IllegalArgumentException("Bu kullanıcı adı mevcut: " + user.getUsername());
         }
         if (userRepository.findUserByEmail(user.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Bu e-posta mevcut: " + user.getEmail() + ". Farklı bir e-posta seçiniz.");
+            throw new IllegalArgumentException("Bu e-posta mevcut: " + user.getEmail());
         }
         user.setCreationDate(LocalDateTime.now());
         return userRepository.save(user);
@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User bulunamadı (id: " + id + ")"));
+                .orElseThrow(() -> new UserNotFoundException("Kullanıcı bulunamadı (id: " + id + ")"));
     }
 
     @Override

@@ -9,4 +9,5 @@ import java.util.List;
 public interface RetweetService {
     Retweet retweet(Long tweetId, Long userId);
     void deleteRetweet(Long tweetId, Long userId);
+    void deleteRetweetById(Long id);
 }
