@@ -1,9 +1,15 @@
 package com.workintech.twitter_api_challenge.dto;
 
 import com.workintech.twitter_api_challenge.entity.User;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserResponse {
     private Long id;
     private String username;
@@ -11,6 +17,7 @@ public class UserResponse {
     private String bio;
     private String profilePhotoUrl;
     private LocalDateTime creationDate;
+
     public UserResponse(User u) {
         this.id = u.getId();
         this.username = u.getUsername();
@@ -19,11 +26,4 @@ public class UserResponse {
         this.profilePhotoUrl = u.getProfilePhotoUrl();
         this.creationDate = u.getCreationDate();
     }
-
-    public Long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getEmail() { return email; }
-    public String getBio() { return bio; }
-    public String getProfilePhotoUrl() { return profilePhotoUrl; }
-    public LocalDateTime getCreationDate() { return creationDate; }
 }

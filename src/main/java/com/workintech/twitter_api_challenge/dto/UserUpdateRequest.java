@@ -1,7 +1,6 @@
 package com.workintech.twitter_api_challenge.dto;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -11,12 +10,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LoginRequest {
-    @NotNull
-    @NotEmpty(message = "Username is required")
+public class UserUpdateRequest {
+    @Size(min = 3, max = 100)
     private String username;
 
-    @NotNull
-    @NotEmpty(message = "Password is required")
-    private String password;
+    @Email
+    private String email;
+
+    private String bio;
+
+    private String profilePhotoUrl;
 }

@@ -1,9 +1,15 @@
 package com.workintech.twitter_api_challenge.dto;
 
 import com.workintech.twitter_api_challenge.entity.Tweet;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class TweetResponse {
     private Long id;
     private String content;
@@ -11,6 +17,7 @@ public class TweetResponse {
     private LocalDateTime creationDate;
     private LocalDateTime updateDate;
     private Long userId;
+
     public TweetResponse(Tweet t) {
         this.id = t.getId();
         this.content = t.getContent();
@@ -19,11 +26,4 @@ public class TweetResponse {
         this.updateDate = t.getUpdateDate();
         this.userId = t.getUser().getId();
     }
-
-    public Long getId() { return id; }
-    public String getContent() { return content; }
-    public String getImageUrl() { return imageUrl; }
-    public LocalDateTime getCreationDate() { return creationDate; }
-    public LocalDateTime getUpdateDate() { return updateDate; }
-    public Long getUserId() { return userId; }
 }

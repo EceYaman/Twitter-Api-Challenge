@@ -1,6 +1,6 @@
 package com.workintech.twitter_api_challenge.dto;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RetweetRequest {
-    @NotNull
-    private Long tweetId;
+@AllArgsConstructor
+public class AuthResponse {
+    private String token;
+    private UserResponse user;
 }
