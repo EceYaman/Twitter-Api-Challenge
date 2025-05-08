@@ -9,25 +9,25 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler
-    public ResponseEntity<TwitterErrorResponse> handleException(TwitterException twitterException){
-        TwitterErrorResponse twitterErrorResponse = new TwitterErrorResponse(
-                twitterException.getMessage(),
-                twitterException.getHttpStatus().value(),
+    @ExceptionHandler(TwitterException.class)
+    public ResponseEntity<TwitterErrorResponse> handleTwitterException(TwitterException ex) {
+        TwitterErrorResponse body = new TwitterErrorResponse(
+                ex.getMessage(),
+                ex.getHttpStatus().value(),
                 System.currentTimeMillis(),
                 LocalDateTime.now()
         );
-        return new  ResponseEntity<>(twitterErrorResponse,twitterException.getHttpStatus());
+        return new ResponseEntity<>(body, ex.getHttpStatus());
     }
 
-    @ExceptionHandler
-    public ResponseEntity<TwitterErrorResponse> handleException(Exception exception){
-        TwitterErrorResponse twitterErrorResponse = new TwitterErrorResponse(
-                exception.getMessage(),
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<TwitterErrorResponse> handleGenericException(Exception ex) {
+        TwitterErrorResponse body = new TwitterErrorResponse(
+                ex.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 System.currentTimeMillis(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(twitterErrorResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

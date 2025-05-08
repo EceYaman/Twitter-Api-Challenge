@@ -1,32 +1,43 @@
 package com.workintech.twitter_api_challenge.controller;
 
+import com.workintech.twitter_api_challenge.dto.AuthResponse;
 import com.workintech.twitter_api_challenge.dto.LoginRequest;
-import com.workintech.twitter_api_challenge.dto.UserResponse;
-import com.workintech.twitter_api_challenge.entity.User;
-import com.workintech.twitter_api_challenge.service.UserService;
+import com.workintech.twitter_api_challenge.dto.RegisterRequest;
+import com.workintech.twitter_api_challenge.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
-    private final UserService userService;
-    public AuthController(UserService userService) { this.userService = userService; }
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
-    public UserResponse register(@Valid @RequestBody User user) {
-        return new UserResponse(userService.createUser(user));
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody RegisterRequest req
+    ) {
+        AuthResponse resp = authService.register(req);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(resp);
     }
 
     @PostMapping("/login")
-    public UserResponse login(@Valid @RequestBody LoginRequest login) {
-        User u = userService.findByUsername(login.getUsername());
-        if (!u.getPassword().equals(login.getPassword())) {
-            throw new IllegalArgumentException("Invalid credentials");
-        }
-        return new UserResponse(u);
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest req
+    ) {
+        AuthResponse resp = authService.login(req);
+        return ResponseEntity.ok(resp);
     }
 }
