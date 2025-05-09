@@ -8,11 +8,13 @@ import com.workintech.twitter_api_challenge.repository.TweetRepository;
 import com.workintech.twitter_api_challenge.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 
+@Transactional
 @Service
 public class TweetServiceImpl implements TweetService{
     private final TweetRepository tweetRepository;

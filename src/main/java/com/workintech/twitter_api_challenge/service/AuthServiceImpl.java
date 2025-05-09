@@ -9,11 +9,11 @@ import com.workintech.twitter_api_challenge.exceptions.TwitterException;
 import com.workintech.twitter_api_challenge.exceptions.UserNotFoundException;
 import com.workintech.twitter_api_challenge.repository.UserRepository;
 import com.workintech.twitter_api_challenge.security.JwtUtil;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -33,11 +33,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.findUserByUsername(request.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new TwitterException("Username is already taken", HttpStatus.BAD_REQUEST);
         }
 
-        if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new TwitterException("Email is already registered", HttpStatus.BAD_REQUEST);
         }
 
@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findUserByUsername(request.getUsername())
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

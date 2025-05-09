@@ -5,7 +5,6 @@ import com.workintech.twitter_api_challenge.dto.LoginRequest;
 import com.workintech.twitter_api_challenge.dto.RegisterRequest;
 import com.workintech.twitter_api_challenge.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,19 +23,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest req
-    ) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
         AuthResponse resp = authService.register(req);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(resp);
+        return ResponseEntity.status(201).body(resp);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @Valid @RequestBody LoginRequest req
-    ) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
         AuthResponse resp = authService.login(req);
         return ResponseEntity.ok(resp);
     }

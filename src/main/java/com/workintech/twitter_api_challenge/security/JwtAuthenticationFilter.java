@@ -1,5 +1,6 @@
 package com.workintech.twitter_api_challenge.security;
 
+import com.workintech.twitter_api_challenge.entity.User;
 import com.workintech.twitter_api_challenge.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,9 +38,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.extractUsername(token);
-                var user = userService.findByUsername(username);
+                User user = userService.findByUsername(username);
                 var auth = new UsernamePasswordAuthenticationToken(
-                        user, null, Collections.emptyList()
+                        user.getUsername(),
+                        null,
+                        Collections.emptyList()
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

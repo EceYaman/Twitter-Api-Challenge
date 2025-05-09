@@ -9,6 +9,7 @@ import com.workintech.twitter_api_challenge.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,20 +29,21 @@ public class RetweetController {
     }
 
     @PostMapping
-    public RetweetResponse retweet(
+    public ResponseEntity<RetweetResponse> retweet(
             @Valid @RequestBody RetweetRequest req,
-            Authentication authentication) {
-        String username = authentication.getName();
-        User current = userService.findByUsername(username);
-        return new RetweetResponse(
-                retweetService.retweet(req.getTweetId(), current.getId())
-        );
+            Authentication auth
+    ) {
+        User user = userService.findByUsername(auth.getName());
+        Retweet saved = retweetService.retweet(req.getTweetId(), user.getId());
+        return ResponseEntity.status(201).body(new RetweetResponse(saved));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(
+    public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            Authentication authentication) {
+            Authentication auth
+    ) {
         retweetService.deleteRetweetById(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -8,6 +8,7 @@ import com.workintech.twitter_api_challenge.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,34 +29,35 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponse> listAll() {
-        return userService.getAllUsers().stream()
-                .map(UserResponse::new)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<UserResponse>> listAll() {
+        List<UserResponse> list = userService.getAllUsers()
+                .stream().map(UserResponse::new).collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/me")
-    public UserResponse getMe(Authentication authentication) {
-        String username = authentication.getName();
-        User current = userService.findByUsername(username);
-        return new UserResponse(current);
+    public ResponseEntity<UserResponse> getMe(Authentication auth) {
+        User u = userService.findByUsername(auth.getName());
+        return ResponseEntity.ok(new UserResponse(u));
     }
 
     @PutMapping("/me")
-    public UserResponse updateMe(@Valid @RequestBody UserUpdateRequest req, Authentication authentication) {
-        String username = authentication.getName();
-        User current = userService.findByUsername(username);
-        current.setUsername(req.getUsername());
-        current.setEmail(req.getEmail());
-        current.setBio(req.getBio());
-        current.setProfilePhotoUrl(req.getProfilePhotoUrl());
-        return new UserResponse(userService.updateUser(current.getId(), current));
+    public ResponseEntity<UserResponse> updateMe(
+            @Valid @RequestBody UserUpdateRequest req,
+            Authentication auth
+    ) {
+        User u = userService.findByUsername(auth.getName());
+        u.setUsername(req.getUsername());
+        u.setEmail(req.getEmail());
+        u.setBio(req.getBio());
+        u.setProfilePhotoUrl(req.getProfilePhotoUrl());
+        User updated = userService.updateUser(u.getId(), u);
+        return ResponseEntity.ok(new UserResponse(updated));
     }
 
     @DeleteMapping("/me")
-    public void deleteMe(Authentication authentication) {
-        String username = authentication.getName();
-        User current = userService.findByUsername(username);
-        userService.deleteUser(current.getId());
+    public ResponseEntity<Void> deleteMe(Authentication auth) {
+        userService.deleteUser(userService.findByUsername(auth.getName()).getId());
+        return ResponseEntity.noContent().build();
     }
 }

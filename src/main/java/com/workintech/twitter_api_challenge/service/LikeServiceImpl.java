@@ -1,6 +1,6 @@
 package com.workintech.twitter_api_challenge.service;
 
-import com.workintech.twitter_api_challenge.entity.Comment;
+
 import com.workintech.twitter_api_challenge.entity.Like;
 import com.workintech.twitter_api_challenge.entity.Tweet;
 import com.workintech.twitter_api_challenge.entity.User;
@@ -12,11 +12,11 @@ import com.workintech.twitter_api_challenge.repository.TweetRepository;
 import com.workintech.twitter_api_challenge.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
+@Transactional
 @Service
 public class LikeServiceImpl implements LikeService{
     private final LikeRepository likeRepo;

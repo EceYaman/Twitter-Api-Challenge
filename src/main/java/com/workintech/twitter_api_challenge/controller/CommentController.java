@@ -9,6 +9,7 @@ import com.workintech.twitter_api_challenge.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,43 +32,46 @@ public class CommentController {
     }
 
     @PostMapping
-    public CommentResponse create(
+    public ResponseEntity<CommentResponse> create(
             @Valid @RequestBody CommentRequest req,
-            Authentication authentication) {
-        String username = authentication.getName();
-        User current = userService.findByUsername(username);
-        Comment c = new Comment();
-        c.setContent(req.getContent());
-        Comment saved = commentService.createComment(req.getTweetId(), current.getId(), c);
-        return new CommentResponse(saved);
+            Authentication auth
+    ) {
+        User user = userService.findByUsername(auth.getName());
+        Comment entity = new Comment();
+        entity.setContent(req.getContent());
+        Comment saved = commentService.createComment(req.getTweetId(), user.getId(), entity);
+        return ResponseEntity.status(201).body(new CommentResponse(saved));
     }
 
     @PutMapping("/{id}")
-    public CommentResponse update(
+    public ResponseEntity<CommentResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody CommentRequest req,
-            Authentication authentication) {
-        String username = authentication.getName();
-        Comment updated = commentService.updateComment(
-                id,
-                req.getContent(),
-                username
-        );
-        return new CommentResponse(updated);
+            Authentication auth
+    ) {
+        Comment updated = commentService.updateComment(id, req.getContent(), auth.getName());
+        return ResponseEntity.ok(new CommentResponse(updated));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(
+    public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            Authentication authentication) {
-        String username = authentication.getName();
-        commentService.deleteComment(id, username);
+            Authentication auth
+    ) {
+        commentService.deleteComment(id, auth.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public List<CommentResponse> byTweet(@RequestParam Long tweetId) {
-        return commentService.getCommentsByTweet(tweetId).stream()
-                .map(CommentResponse::new)
+    public ResponseEntity<List<CommentResponse>> byTweet(@RequestParam Long tweetId) {
+        List<CommentResponse> list = commentService.getCommentsByTweet(tweetId)
+                .stream()
+                .map(comment -> {
+                    CommentResponse response = new CommentResponse(comment);
+                    response.setUserId(comment.getUser().getId());
+                    return response;
+                })
                 .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 }
