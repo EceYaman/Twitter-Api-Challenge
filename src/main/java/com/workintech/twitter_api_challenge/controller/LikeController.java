@@ -43,8 +43,8 @@ public class LikeController {
             @Valid @RequestBody DislikeRequest req,
             Authentication auth
     ) {
-        User user = userService.findByUsername(auth.getName());
-        likeService.dislikeTweet(req.getTweetId(), user.getId());
+        Long userId = userService.findByUsername(auth.getName()).getId();
+        likeService.dislikeTweet(req.getTweetId(), userId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -58,7 +58,8 @@ public class CommentController {
             @PathVariable Long id,
             Authentication auth
     ) {
-        commentService.deleteComment(id, auth.getName());
+        Long userId = userService.findByUsername(auth.getName()).getId();
+        commentService.deleteComment(id, userId);
         return ResponseEntity.noContent().build();
     }
 

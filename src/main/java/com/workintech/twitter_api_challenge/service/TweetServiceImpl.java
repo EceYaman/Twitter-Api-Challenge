@@ -47,8 +47,11 @@ public class TweetServiceImpl implements TweetService{
     }
 
     @Override
-    public Tweet updateTweet(Long id, Tweet tweetDetails) {
+    public Tweet updateTweet(Long id, Tweet tweetDetails, Long userId) {
         Tweet tweet = getTweetById(id);
+        if (!tweet.getUser().getId().equals(userId)) {
+            throw new SecurityException("Bu tweeti güncelleme yetkiniz yok");
+        }
         tweet.setContent(tweetDetails.getContent());
         tweet.setImageUrl(tweetDetails.getImageUrl());
         tweet.setUpdateDate(LocalDateTime.now());
@@ -56,11 +59,11 @@ public class TweetServiceImpl implements TweetService{
     }
 
     @Override
-    public void deleteTweet(Long id, String username) {
+    public void deleteTweet(Long id, Long userId) {
         Tweet tweet = getTweetById(id);
-        if (!tweet.getUser().getUsername().equals(username)) {
+        if (!tweet.getUser().getId().equals(userId)) {
             throw new SecurityException("Bu tweeti silme yetkiniz yok");
         }
-        tweetRepository.delete(tweet);
+        tweetRepository.deleteByIdAndUserId(id, userId);
     }
 }

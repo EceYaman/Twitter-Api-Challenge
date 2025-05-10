@@ -8,6 +8,6 @@ public interface TweetService {
     Tweet createTweet(Long userId, Tweet tweet);
     List<Tweet> getTweetsByUser(Long userId);
     Tweet getTweetById(Long id);
-    Tweet updateTweet(Long id, Tweet tweet);
-    void deleteTweet(Long id, String username);
+    Tweet updateTweet(Long id, Tweet tweet, Long userId);
+    void deleteTweet(Long id, Long userId);
 }

@@ -55,13 +55,17 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public void deleteComment(Long id, String username) {
+    public void deleteComment(Long id, Long userId) {
         Comment comment = commentRepo.findById(id)
                 .orElseThrow(() -> new CommentNotFoundException("Yorum bulunamadı (id: " + id + ")"));
-        if (!comment.getUser().getUsername().equals(username) && !comment.getTweet().getUser().getUsername().equals(username)) {
+
+        boolean isOwner      = comment.getUser().getId().equals(userId);
+        boolean isTweetOwner = comment.getTweet().getUser().getId().equals(userId);
+
+        if (!isOwner && !isTweetOwner) {
             throw new SecurityException("Bu yorumu silme yetkiniz yok");
         }
-        commentRepo.delete(comment);
+        commentRepo.deleteByIdAndUserId(id, userId);
     }
 
     @Override

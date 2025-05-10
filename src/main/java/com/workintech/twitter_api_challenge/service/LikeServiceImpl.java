@@ -49,7 +49,8 @@ public class LikeServiceImpl implements LikeService{
     @Override
     public void dislikeTweet(Long tweetId, Long userId) {
         likeRepo.findByTweetIdAndUserId(tweetId, userId)
-                .orElseThrow(() -> new LikeNotFoundException("Like bulunamadı (tweet: " + tweetId + ", user: " + userId + ")"));
+                .orElseThrow(() -> new LikeNotFoundException(
+                        "Like bulunamadı (tweet: " + tweetId + ", user: " + userId + ")"));
         likeRepo.deleteByTweetIdAndUserId(tweetId, userId);
     }
 }

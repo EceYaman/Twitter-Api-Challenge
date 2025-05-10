@@ -68,10 +68,11 @@ public class TweetController {
             @Valid @RequestBody TweetRequest req,
             Authentication auth
     ) {
+        User user = userService.findByUsername(auth.getName());
         Tweet entity = new Tweet();
         entity.setContent(req.getContent());
         entity.setImageUrl(req.getImageUrl());
-        Tweet updated = tweetService.updateTweet(id, entity);
+        Tweet updated = tweetService.updateTweet(id, entity, user.getId());
         return ResponseEntity.ok(new TweetResponse(updated));
     }
 
@@ -80,7 +81,8 @@ public class TweetController {
             @PathVariable Long id,
             Authentication auth
     ) {
-        tweetService.deleteTweet(id, auth.getName());
+        Long userId = userService.findByUsername(auth.getName()).getId();
+        tweetService.deleteTweet(id, userId);
         return ResponseEntity.noContent().build();
     }
 }

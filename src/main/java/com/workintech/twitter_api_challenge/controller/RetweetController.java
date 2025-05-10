@@ -38,12 +38,13 @@ public class RetweetController {
         return ResponseEntity.status(201).body(new RetweetResponse(saved));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id,
+    @DeleteMapping("/{tweetId}")
+    public ResponseEntity<Void> deleteRetweet(
+            @PathVariable Long tweetId,
             Authentication auth
     ) {
-        retweetService.deleteRetweetById(id);
+        Long userId = userService.findByUsername(auth.getName()).getId();
+        retweetService.deleteRetweet(tweetId, userId);
         return ResponseEntity.noContent().build();
     }
 }
