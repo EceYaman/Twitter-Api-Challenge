@@ -74,7 +74,7 @@ class CommentServiceImplTest {
     }
 
     @Test
-    @DisplayName("Yorumu güncellerken yetkisiz kullanıcıda fırlatılıyor mu?")
+    @DisplayName("Yorumu güncellerken yetkisiz kullanıcıda hata fırlatılıyor mu?")
     void testUpdateCommentUnauthorized() {
         User owner = new User(); owner.setUsername("sahip");
         Tweet tweet = new Tweet(); tweet.setUser(new User());
