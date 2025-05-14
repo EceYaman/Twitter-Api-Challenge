@@ -1,107 +1,121 @@
 package com.workintech.twitter_api_challenge.controller;
 
+import com.workintech.twitter_api_challenge.dto.TweetRequest;
+import com.workintech.twitter_api_challenge.dto.TweetResponse;
 import com.workintech.twitter_api_challenge.entity.Tweet;
 import com.workintech.twitter_api_challenge.entity.User;
-import com.workintech.twitter_api_challenge.exceptions.TweetNotFoundException;
-import com.workintech.twitter_api_challenge.exceptions.UserNotFoundException;
-import com.workintech.twitter_api_challenge.repository.TweetRepository;
-import com.workintech.twitter_api_challenge.repository.UserRepository;
-import com.workintech.twitter_api_challenge.service.TweetServiceImpl;
+import com.workintech.twitter_api_challenge.exceptions.TwitterException;
+import com.workintech.twitter_api_challenge.service.TweetService;
+import com.workintech.twitter_api_challenge.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class TweetServiceImplTest {
+public class TweetControllerTest {
 
     @Mock
-    private TweetRepository tweetRepository;
+    private TweetService tweetService;
+
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
+
     @InjectMocks
-    private TweetServiceImpl tweetService;
+    private TweetController tweetController;
 
-    private User user;
-    private Tweet tweet;
+    private Authentication auth;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
-        user = new User(); user.setId(1L);
-        tweet = new Tweet();
-        tweet.setId(100L);
-        tweet.setContent("Test");
-        tweet.setCreationDate(LocalDateTime.now());
+        MockitoAnnotations.openMocks(this);
+        auth = new UsernamePasswordAuthenticationToken("testuser", null);
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testuser");
     }
 
     @Test
-    @DisplayName("Tweet başarılı şekilde oluşturulabiliyor mu?")
-    void testCreateTweetSuccess() {
-        given(userRepository.findById(1L)).willReturn(Optional.of(user));
-        given(tweetRepository.save(any(Tweet.class))).willAnswer(invocation -> {
-            Tweet t = invocation.getArgument(0);
-            t.setId(tweet.getId());
-            t.setCreationDate(LocalDateTime.now());
-            return t;
-        });
+    @DisplayName("Tweet oluşturma isteği başarılı olduğunda 201 dönüyor mu?")
+    void testCreateTweetReturnsCreatedAndCorrectBody() {
+        when(userService.findByUsername(eq("testuser"))).thenReturn(testUser);
 
-        Tweet result = tweetService.createTweet(1L, new Tweet());
-        assertEquals(100L, result.getId());
-        assertNotNull(result.getCreationDate());
+        TweetRequest req = new TweetRequest();
+        req.setContent("Yeni tweet içeriği");
+        req.setImageUrl(null);
+
+        Tweet saved = new Tweet();
+        saved.setId(100L);
+        saved.setContent(req.getContent());
+        saved.setCreationDate(LocalDateTime.now());
+        saved.setUser(testUser);
+
+        when(tweetService.createTweet(eq(1L), any(Tweet.class))).thenReturn(saved);
+
+        ResponseEntity<TweetResponse> response = tweetController.create(req, auth);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(201);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo(100L);
+        assertThat(response.getBody().getContent()).isEqualTo("Yeni tweet içeriği");
+        verify(tweetService).createTweet(eq(1L), any(Tweet.class));
     }
 
     @Test
-    @DisplayName("Kullanıcı bulunamazsa hata fırlatılıyor mu?")
-    void testCreateTweetUserNotFound() {
-        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, () -> tweetService.createTweet(1L, new Tweet()));
+    @DisplayName("Tweet oluşturma sırasında kullanıcı bulunamazsa NotFound hatası dönüyor mu?")
+    void testCreateTweetWhenUserNotFoundThrowsException() {
+        when(userService.findByUsername(anyString()))
+                .thenThrow(new TwitterException("Kullanıcı bulunamadı", HttpStatus.NOT_FOUND));
+
+        TweetRequest req = new TweetRequest();
+        req.setContent("İçerik");
+
+        assertThatThrownBy(() -> tweetController.create(req, auth))
+                .isInstanceOf(TwitterException.class)
+                .hasMessageContaining("Kullanıcı bulunamadı");
     }
 
     @Test
-    @DisplayName("Tweet id ile başarılı şekilde bulunabiliyor mu?")
-    void testGetTweetByIdSuccess() {
-        given(tweetRepository.findById(100L)).willReturn(Optional.of(tweet));
-        Tweet found = tweetService.getTweetById(100L);
-        assertEquals(100L, found.getId());
+    @DisplayName("Kullanıcıya ait tweetler listelenirken doğru sayıda TweetResponse dönülüyor mu?")
+    void testFindByUserReturnsListOfTweetResponses() {
+        when(userService.findByUsername(eq("testuser"))).thenReturn(testUser);
+
+        Tweet t1 = new Tweet(); t1.setId(1L); t1.setContent("A"); t1.setUser(testUser);
+        Tweet t2 = new Tweet(); t2.setId(2L); t2.setContent("B"); t2.setUser(testUser);
+        when(tweetService.getTweetsByUser(eq(1L))).thenReturn(List.of(t1, t2));
+
+        ResponseEntity<List<TweetResponse>> response = tweetController.byUser(auth);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).hasSize(2);
+        verify(tweetService).getTweetsByUser(eq(1L));
     }
 
     @Test
-    @DisplayName("Geçersiz id ile tweet bulunamayınca hata fırlatılıyor mu?")
-    void testGetTweetByIdNotFound() {
-        given(tweetRepository.findById(anyLong())).willReturn(Optional.empty());
-        assertThrows(TweetNotFoundException.class, () -> tweetService.getTweetById(1L));
-    }
+    @DisplayName("Tweet listelenirken servis hatası olursa exception fırlatılıyor mu?")
+    void testFindByUserWhenServiceThrowsException() {
+        when(userService.findByUsername(anyString()))
+                .thenReturn(testUser);
+        when(tweetService.getTweetsByUser(anyLong()))
+                .thenThrow(new RuntimeException("DB hatası"));
 
-    @Test
-    @DisplayName("Tweet sahibi başarılı şekilde tweet silebiliyor mu?")
-    void testDeleteTweetSuccess() {
-        tweet.setUser(user);
-        given(tweetRepository.findById(100L)).willReturn(Optional.of(tweet));
-        assertDoesNotThrow(() -> tweetService.deleteTweet(100L, 1L));
-    }
-
-    @Test
-    @DisplayName("Sahibi olmayan kullanıcı tweet silmeye çalışınca hata fırlatılıyor mu?")
-    void testDeleteTweetSecurityException() {
-        User other = new User(); other.setId(2L);
-        tweet.setUser(user);
-        given(tweetRepository.findById(100L)).willReturn(Optional.of(tweet));
-        assertThrows(SecurityException.class, () -> tweetService.deleteTweet(100L, 2L));
+        assertThatThrownBy(() -> tweetController.byUser(auth))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("DB hatası");
     }
 }
-
-
-
-
 

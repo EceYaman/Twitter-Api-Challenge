@@ -3,108 +3,89 @@ package com.workintech.twitter_api_challenge.controller;
 import com.workintech.twitter_api_challenge.dto.AuthResponse;
 import com.workintech.twitter_api_challenge.dto.LoginRequest;
 import com.workintech.twitter_api_challenge.dto.RegisterRequest;
-import com.workintech.twitter_api_challenge.entity.User;
+import com.workintech.twitter_api_challenge.dto.UserResponse;
 import com.workintech.twitter_api_challenge.exceptions.TwitterException;
-import com.workintech.twitter_api_challenge.exceptions.UserNotFoundException;
-import com.workintech.twitter_api_challenge.repository.UserRepository;
-import com.workintech.twitter_api_challenge.security.JwtUtil;
-import com.workintech.twitter_api_challenge.service.AuthServiceImpl;
+import com.workintech.twitter_api_challenge.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.mockito.MockitoAnnotations;
 
-import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
-@ExtendWith(MockitoExtension.class)
-class AuthServiceImplTest {
-
+class AuthControllerTest {
     @Mock
-    private UserRepository userRepository;
-    @Mock
-    private PasswordEncoder passwordEncoder;
-    @Mock
-    private JwtUtil jwtUtil;
+    private AuthService authService;
+
     @InjectMocks
-    private AuthServiceImpl authService;
+    private AuthController authController;
 
-    private RegisterRequest registerRequest;
-    private LoginRequest loginRequest;
-    private User user;
+    private RegisterRequest regReq;
+    private LoginRequest logReq;
 
     @BeforeEach
     void setUp() {
-        registerRequest = new RegisterRequest();
-        registerRequest.setUsername("testuser");
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("Password1!");
+        MockitoAnnotations.openMocks(this);
+        regReq = new RegisterRequest();
+        regReq.setUsername("user1");
+        regReq.setEmail("user1@example.com");
+        regReq.setPassword("Pass@123");
 
-        loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser");
-        loginRequest.setPassword("Password1!");
-
-        user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
-        user.setPassword("encoded");
+        logReq = new LoginRequest();
+        logReq.setUsername("user1");
+        logReq.setPassword("Pass@123");
     }
 
     @Test
-    @DisplayName("Kayıt işlemi başarılı olduğunda kullanıcı kaydediliyor mu?")
-    void testRegisterSuccess() {
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.empty());
-        given(userRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(passwordEncoder.encode(anyString())).willReturn("encoded");
-        given(userRepository.save(any(User.class))).willReturn(user);
-        given(jwtUtil.generateToken(anyString())).willReturn("jwt-token");
+    @DisplayName("Kayıt işlemi başarılı olduğunda 201 dönüyor mu?")
+    void testRegisterReturnsCreatedAndToken() {
+        UserResponse ur = new UserResponse(); ur.setId(5L); ur.setUsername("user1");
+        AuthResponse expected = new AuthResponse("tokken123", ur);
+        when(authService.register(eq(regReq))).thenReturn(expected);
 
-        AuthResponse response = authService.register(registerRequest);
+        ResponseEntity<AuthResponse> response = authController.register(regReq);
 
-        assertNotNull(response);
-        assertEquals("jwt-token", response.getToken());
-        verify(userRepository).save(any(User.class));
+        assertThat(response.getStatusCodeValue()).isEqualTo(201);
+        assertThat(response.getBody().getToken()).isEqualTo("tokken123");
     }
 
     @Test
-    @DisplayName("Mevcut kullanıcı adı ile kayıt yapılmaya çalışıldığında hata fırlatılıyor mu?")
-    void testRegisterUsernameExists() {
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.of(user));
-        assertThrows(TwitterException.class, () -> authService.register(registerRequest));
+    @DisplayName("Kayıt sırasında kullanıcı adı zaten varsa hata fırlatılıyor mu?")
+    void testRegisterWhenUsernameTakenThrowsException() {
+        when(authService.register(any())).thenThrow(new TwitterException("Username is already taken", HttpStatus.BAD_REQUEST));
+
+        assertThatThrownBy(() -> authController.register(regReq))
+                .isInstanceOf(TwitterException.class)
+                .hasMessageContaining("Username is already taken");
     }
 
     @Test
-    @DisplayName("Geçerli kullanıcı bilgileriyle giriş yapıldığında token döner mi?")
-    void testLoginSuccess() {
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-        given(jwtUtil.generateToken(anyString())).willReturn("jwt-token-login");
+    @DisplayName("Giriş işlemi başarılı olduğunda 200 ve kullanıcı bilgisi dönüyor mu?")
+    void testLoginReturnsOkAndUserInfo() {
+        UserResponse ur = new UserResponse(); ur.setId(5L); ur.setUsername("user1");
+        AuthResponse expected = new AuthResponse("tokkenABC", ur);
+        when(authService.login(eq(logReq))).thenReturn(expected);
 
-        AuthResponse resp = authService.login(loginRequest);
-        assertEquals("jwt-token-login", resp.getToken());
+        ResponseEntity<AuthResponse> response = authController.login(logReq);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody().getUser().getUsername()).isEqualTo("user1");
     }
 
     @Test
-    @DisplayName("Mevcut olmayan kullanıcıyla giriş yapılmaya çalışıldığında hata fırlatılıyor mu?")
-    void testLoginUserNotFound() {
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, () -> authService.login(loginRequest));
-    }
+    @DisplayName("Giriş sırasında geçersiz parola girilirse hata fırlatılıyor mu?")
+    void testLoginWhenInvalidCredentialsThrowsException() {
+        when(authService.login(any())).thenThrow(new TwitterException("Invalid username or password", HttpStatus.UNAUTHORIZED));
 
-    @Test
-    @DisplayName("Yanlış şifre girildiğinde hata fırlatılıyor mu?")
-    void testLoginInvalidPassword() {
-        given(userRepository.findByUsername(anyString())).willReturn(Optional.of(user));
-        given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
-        assertThrows(TwitterException.class, () -> authService.login(loginRequest));
+        assertThatThrownBy(() -> authController.login(logReq))
+                .isInstanceOf(TwitterException.class)
+                .hasMessageContaining("Invalid username or password");
     }
 }
 
